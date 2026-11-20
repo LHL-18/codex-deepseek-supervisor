@@ -1,0 +1,33 @@
+# Credentials stay local. Only the empty example is publishable.
+.env
+.env.*
+!.env.deepseek.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*credentials*.json
+
+# Requests, source context, model replies, validation output and session state.
+tools/.deepseek-runs/
+.deepseek-runs/
+*.log
+
+# Python/local tooling.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage*
+htmlcov/
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local exports.
+dist/
+*.zip

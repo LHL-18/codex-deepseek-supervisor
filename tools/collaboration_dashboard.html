@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Codex × DeepSeek · 协作工作台</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script src="/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">⇄</span><div><span class="eyebrow">CODEX × DEEPSEEK / MISSION CONTROL</span><h1>协作工作台 <span>Codex × DeepSeek</span></h1></div></div>
+      <div class="sync"><span class="dot" id="sync-dot"></span><span id="sync-status" role="status">正在读取记录</span></div>
+    </header>
+    <section class="mode-panel" aria-label="协作模式控制">
+      <div class="mode-intro"><span class="eyebrow">TASK-SCOPED COLLABORATION</span><div class="mode-title"><h2 id="mode-title">Codex 独立模式</h2><span class="badge" id="mode-badge">默认关闭</span></div><p id="mode-description">仅对指定任务开启双模型协作，任务结束后恢复独立处理。</p><p id="mode-session" class="mode-session"></p></div>
+      <form id="mode-start-form" class="mode-form"><label for="mode-task">本次协作任务</label><div class="mode-input-row"><input id="mode-task" maxlength="160" required placeholder="例如：修复日期解析函数的时区问题"><button class="control-primary" type="submit" id="mode-start">开启本次协作 <span aria-hidden="true">↗</span></button></div></form>
+      <div id="mode-active-actions" hidden><button class="control-end" type="button" id="mode-end">结束协作，恢复独立模式</button></div>
+      <div class="mode-help"><span>对我说：<code>这个任务用双模型协作：……</code></span><span>结束时说：<code>结束协作</code></span><span>开关不会自动发送任务；已发出的请求可能继续返回。</span></div>
+      <p id="mode-error" role="alert" hidden></p>
+    </section>
+    <section class="overview" aria-label="真实调用统计">
+      <div><span class="muted">真实 API 调用</span><strong id="total-runs">—</strong><small>包含历史记录</small></div>
+      <div><span class="muted">DeepSeek 累计用量</span><strong id="total-tokens">—</strong><small>tokens · 不含 Codex 对话</small></div>
+      <div><span class="muted">当前活动</span><strong class="activity" id="activity">—</strong><small id="last-sync">等待同步</small></div>
+    </section>
+    <div class="layout">
+      <aside class="history" aria-label="调用历史">
+        <div class="section-heading"><h2>调用记录</h2><button type="button" id="follow-latest" aria-pressed="true">跟随最新</button></div>
+        <div id="run-list" class="run-list"></div>
+        <p class="history-note">本机记录 · 每 2 秒自动同步<br>查看记录不会调用模型或产生 API 费用。</p>
+      </aside>
+      <main id="main" aria-label="选中任务详情">
+        <div id="empty" class="empty">等待第一条协作记录。运行 DeepSeek 任务后会自动出现。</div>
+        <div id="run-view" hidden>
+          <div class="task-heading"><div><span id="run-label" class="eyebrow">实际任务</span><h2 id="task-title"></h2><div class="task-meta" id="task-meta"></div></div><span id="task-state" class="badge"></span></div>
+          <div class="roles" aria-label="模型分工"><div><span class="role-name">CODEX</span><span>分析任务 → 选择上下文 → 审查与验收</span></div><span class="role-arrow" aria-hidden="true">⇄</span><div><span class="role-name deepseek">DEEPSEEK</span><span>接收局部任务 → 返回建议或补丁</span></div></div>
+          <section class="progress-focus" aria-label="当前进度">
+            <div class="progress-copy"><span class="eyebrow" id="progress-caption">当前选中调用</span><h3 id="progress-label">正在读取进度</h3><span id="progress-owner"></span></div>
+            <div class="milestone-count"><strong id="progress-count">—</strong><span>阶段已确认</span></div>
+            <div class="milestone-track" id="milestone-track" aria-label="六阶段进度"></div>
+            <div class="progress-foot"><span id="progress-next"></span><span id="progress-timer"></span></div>
+          </section>
+          <div id="legacy-note" class="notice" hidden>历史记录仅保存了模型回复和用量，未保存发送任务、审查及验证过程；缺失步骤显示为“未记录”。</div>
+          <section aria-label="工作流程">
+            <div class="section-heading"><h3>从交接到验收</h3><span class="muted">点击步骤查看证据</span></div>
+            <div id="pipeline" class="pipeline"></div>
+          </section>
+          <nav class="tabs" aria-label="详情内容" role="tablist">
+            <button type="button" id="tab-process" role="tab" aria-controls="panel-process" aria-selected="true">步骤详情</button>
+            <button type="button" id="tab-request" role="tab" aria-controls="panel-request" aria-selected="false">实际发送内容</button>
+            <button type="button" id="tab-events" role="tab" aria-controls="panel-events" aria-selected="false">完整事件时间线</button>
+          </nav>
+          <section id="panel-process" role="tabpanel" aria-labelledby="tab-process">
+            <div class="detail-heading"><h3 id="step-title"></h3><span id="step-owner" class="muted"></span></div>
+            <p id="step-summary" role="status"></p>
+            <div id="step-metrics" class="step-metrics"></div>
+            <pre id="step-content"></pre>
+          </section>
+          <section id="panel-request" role="tabpanel" aria-labelledby="tab-request" hidden>
+            <div class="detail-heading"><h3>交给 DeepSeek 的实际内容</h3><span class="muted">本地脱敏副本</span></div>
+            <div id="request-meta" class="task-meta"></div>
+            <div id="messages"></div>
+          </section>
+          <section id="panel-events" role="tabpanel" aria-labelledby="tab-events" hidden>
+            <div class="detail-heading"><h3>可核对的协作事件</h3><span class="muted">北京时间</span></div>
+            <ol id="events" class="events"></ol>
+          </section>
+          <footer class="run-footer"><span id="run-conclusion"></span><code id="run-id"></code></footer>
+        </div>
+      </main>
+    </div>
+    <footer class="page-footer">进度来自已记录事件，不推测模型内部生成百分比。<span>API 返回成功 ≠ 代码已修改 ≠ 测试已通过。</span></footer>
+  </div>
+</body>
+</html>
